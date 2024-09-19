@@ -4,7 +4,6 @@ using System.Xml;
 using System.Xml.Linq;
 using Xmlvalidator;
 using Xmlvalidator.ConditionModel;
-using Action = System.Action;
 
 Console.WriteLine("Validator started!");
 
