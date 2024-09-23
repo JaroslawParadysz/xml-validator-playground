@@ -21,7 +21,7 @@ var rules = new List<ValidationRule>
                 RuleId = 1,
                 NamespaceURI = "urn:pl:oire:unk_2_1_1_1:v1",
                 FieldName = "MeteringPointType",
-                Operator = Operator.HAS_VALUE
+                Operators = Operators.HAS_ANY_VALUE
             }
         },
         Actions = new List<RuleAction>
@@ -49,7 +49,7 @@ var rules = new List<ValidationRule>
                 RuleId = 2,
                 NamespaceURI = "urn:pl:oire:unk_2_1_1_1:v1",
                 FieldName = "Country",
-                Operator = Operator.EQUALS,
+                Operators = Operators.EQUALS,
                 Value = "PL"
                 
             }
@@ -79,7 +79,7 @@ var rules = new List<ValidationRule>
                 RuleId = 2,
                 NamespaceURI = "urn:pl:oire:unk_2_1_1_1:v1",
                 FieldName = "MeteringPointType",
-                Operator = Operator.IN,
+                Operators = Operators.IN,
                 Value = "CK0314,CK0315,CK0316"
                 
             }

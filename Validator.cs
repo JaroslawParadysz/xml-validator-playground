@@ -33,17 +33,17 @@ public class Validator
         XName elementName = XName.Get(condition.FieldName, condition.NamespaceURI);
         elements = xmlDoc.Descendants(elementName);
 
-        switch (condition.Operator)
+        switch (condition.Operators)
         {
-            case Operator.HAS_VALUE:
+            case Operators.HAS_ANY_VALUE:
                 return elements.Any(e => !string.IsNullOrEmpty(e.Value));
-            case Operator.EQUALS:
+            case Operators.EQUALS:
                 return elements.Any(e => e.Value == condition.Value);
-            case Operator.IN:
+            case Operators.IN:
                 var values = condition.Value.Split(',');
                 return elements.Any(e => values.Contains(e.Value));
             default:
-                throw new InvalidOperationException($"Unsupported operator: {condition.Operator}");
+                throw new InvalidOperationException($"Unsupported operator: {condition.Operators}");
         }
     }
 
