@@ -1,6 +1,9 @@
 using System.Xml;
 using System.Xml.Linq;
-using Xmlvalidator.ConditionModel;
+using Xmlvalidator.Model;
+using Xmlvalidator.Model.Enums;
+using Action = Xmlvalidator.Model.Enums.Action;
+
 
 namespace Xmlvalidator;
 
@@ -8,34 +11,38 @@ public class Validator
 {
     public void ValidateXml(XDocument xmlDoc, ActionRule action, LogicalRule validationRule, XmlNamespaceManager namespaceManager)
     {
-        var validationResult = ValidateCondition(xmlDoc, action, validationRule, namespaceManager);
+        var validationResult = ValidateLogicalRule(xmlDoc, validationRule, namespaceManager);
         
         ApplyActions(xmlDoc, action, validationResult, namespaceManager);
     }
 
-    public bool ValidateCondition(XDocument xmlDoc, ActionRule action, LogicalRule logicalRule,
+    public bool ValidateLogicalRule(XDocument xmlDoc, LogicalRule logicalRule,
         XmlNamespaceManager namespaceManager)
     {
+        if (logicalRule.Parents is null && logicalRule.Conditions is null)
+        {
+            throw new InvalidOperationException("Logical rule must have at least one parent or condition.");
+        }
+        
         var parentResult = new List<bool>();
-        if (logicalRule.Parents.Any())
+        if (logicalRule.Parents?.Any() ?? false)
         {
             foreach (var parent in logicalRule.Parents)
             {
-                parentResult.Add(ValidateCondition(xmlDoc, action, parent, namespaceManager));
+                parentResult.Add(ValidateLogicalRule(xmlDoc, parent, namespaceManager));
             }
             
             if (logicalRule.LogicOperator == LogicOperator.AND)
             {
                 return parentResult.All(x => x);
             }
-            else if (logicalRule.LogicOperator == LogicOperator.OR)
+
+            if (logicalRule.LogicOperator == LogicOperator.OR)
             {
                 return parentResult.Any(x => x);
             }
-            else
-            {
-                throw new InvalidOperationException($"Unsupported operator: {logicalRule.LogicOperator}");
-            }
+
+            throw new InvalidOperationException($"Unsupported operator: {logicalRule.LogicOperator}");
         }
 
         var conditionsResult = new List<bool>();
@@ -48,14 +55,13 @@ public class Validator
         {
             return conditionsResult.All(x => x);
         }
-        else if (logicalRule.LogicOperator == LogicOperator.OR)
+
+        if (logicalRule.LogicOperator == LogicOperator.OR)
         {
             return conditionsResult.Any(x => x);
         }
-        else
-        {
-            throw new InvalidOperationException($"Unsupported operator: {logicalRule.LogicOperator}");
-        }
+
+        throw new InvalidOperationException($"Unsupported operator: {logicalRule.LogicOperator}");
     }
 
     private bool EvaluateCondition(XDocument xmlDoc, ConditionRule condition, XmlNamespaceManager namespaceManager)
@@ -80,24 +86,24 @@ public class Validator
 
     private void ApplyActions(XDocument xmlDoc, ActionRule action, bool conditionResult, XmlNamespaceManager namespaceManager)
     {
-        ConditionModel.Action actionType = conditionResult ? action.ActionWhenTrue : action.ActionWhenFalse;
+        Action actionType = conditionResult ? action.ActionWhenTrue : action.ActionWhenFalse;
         IEnumerable<XElement> elements;
         XName elementName = XName.Get(action.ConfigField.FieldName, action.ConfigField.NamespaceURI);
         elements = xmlDoc.Descendants(elementName);
 
         switch (actionType)
         {
-            case ConditionModel.Action.MUST_EXIST:
+            case Action.MUST_EXIST:
                 if (!elements.Any())
                     ReportError($"Field '{action.ConfigField.FieldName}' must exist.");
                 break;
-            case ConditionModel.Action.MUST_NOT_EXIST:
+            case Action.MUST_NOT_EXIST:
                 if (elements.Any())
                     ReportError($"Field '{action.ConfigField.FieldName}' must not exist.");
                 break;
-            case ConditionModel.Action.ALLOW_MULTIPLE:
+            case Action.ALLOW_MULTIPLE:
                 break;
-            case ConditionModel.Action.DISALLOW_MULTIPLE:
+            case Action.DISALLOW_MULTIPLE:
                 if (elements.Count() > 1)
                     ReportError($"Field '{action.ConfigField.FieldName}' must not have multiple instances.");
                 break;

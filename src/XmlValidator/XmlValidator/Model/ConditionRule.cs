@@ -1,4 +1,6 @@
-namespace Xmlvalidator.ConditionModel;
+using Xmlvalidator.Model.Enums;
+
+namespace Xmlvalidator.Model;
 
 public class ConditionRule
 {

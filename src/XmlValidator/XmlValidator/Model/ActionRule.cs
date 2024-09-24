@@ -1,4 +1,5 @@
-namespace Xmlvalidator.ConditionModel;
+using Action = Xmlvalidator.Model.Enums.Action;
+namespace Xmlvalidator.Model;
 
 public class ActionRule
 {

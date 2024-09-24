@@ -1,4 +1,4 @@
-namespace Xmlvalidator.ConditionModel;
+namespace Xmlvalidator.Model.Enums;
 
 public enum LogicOperator
 {
