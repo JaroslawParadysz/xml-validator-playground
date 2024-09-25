@@ -7,7 +7,7 @@ using Action = Xmlvalidator.Model.Enums.Action;
 
 namespace XmlValidator.Tests
 {
-    public class UnitTest1
+    public class LogicalRuleValidatorTests
     {
         private static XmlNamespaceManager _namespaceManager = new XmlNamespaceManagerBuilder()
             .AddNamespace("soap", "http://www.w3.org/2003/05/soap-envelope")
@@ -50,7 +50,7 @@ namespace XmlValidator.Tests
             };
 
             // Validate XML
-            var validator = new Validator();
+            var validator = new LogicalRuleValidator();
             bool result = validator.ValidateLogicalRule(xmlDoc, meteringPointLogicalRule, _namespaceManager);
 
             // Assert the result
@@ -158,7 +158,7 @@ namespace XmlValidator.Tests
             };
 
             // Validate XML
-            var validator = new Validator();
+            var validator = new LogicalRuleValidator();
             bool result = validator.ValidateLogicalRule(xmlDoc, complexRule, _namespaceManager);
 
             // Assert the result

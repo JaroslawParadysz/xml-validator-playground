@@ -2,20 +2,11 @@ using System.Xml;
 using System.Xml.Linq;
 using Xmlvalidator.Model;
 using Xmlvalidator.Model.Enums;
-using Action = Xmlvalidator.Model.Enums.Action;
-
 
 namespace Xmlvalidator;
 
-public class Validator
+public class LogicalRuleValidator
 {
-    public void ValidateXml(XDocument xmlDoc, ActionRule action, LogicalRule validationRule, XmlNamespaceManager namespaceManager)
-    {
-        var validationResult = ValidateLogicalRule(xmlDoc, validationRule, namespaceManager);
-        
-        ApplyActions(xmlDoc, action, validationResult, namespaceManager);
-    }
-
     public bool ValidateLogicalRule(XDocument xmlDoc, LogicalRule logicalRule,
         XmlNamespaceManager namespaceManager)
     {
@@ -81,34 +72,6 @@ public class Validator
                 return elements.Any(e => values.Contains(e.Value));
             default:
                 throw new InvalidOperationException($"Unsupported operator: {condition.ConditionOperator}");
-        }
-    }
-
-    private void ApplyActions(XDocument xmlDoc, ActionRule action, bool conditionResult, XmlNamespaceManager namespaceManager)
-    {
-        Action actionType = conditionResult ? action.ActionWhenTrue : action.ActionWhenFalse;
-        IEnumerable<XElement> elements;
-        XName elementName = XName.Get(action.ConfigField.FieldName, action.ConfigField.NamespaceURI);
-        elements = xmlDoc.Descendants(elementName);
-
-        switch (actionType)
-        {
-            case Action.MUST_EXIST:
-                if (!elements.Any())
-                    ReportError($"Field '{action.ConfigField.FieldName}' must exist.");
-                break;
-            case Action.MUST_NOT_EXIST:
-                if (elements.Any())
-                    ReportError($"Field '{action.ConfigField.FieldName}' must not exist.");
-                break;
-            case Action.ALLOW_MULTIPLE:
-                break;
-            case Action.DISALLOW_MULTIPLE:
-                if (elements.Count() > 1)
-                    ReportError($"Field '{action.ConfigField.FieldName}' must not have multiple instances.");
-                break;
-            default:
-                throw new InvalidOperationException($"Unsupported action: {actionType}");
         }
     }
 
