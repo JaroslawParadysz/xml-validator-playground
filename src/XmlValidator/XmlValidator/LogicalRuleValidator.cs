@@ -10,49 +10,66 @@ public class LogicalRuleValidator
     public bool ValidateLogicalRule(XDocument xmlDoc, LogicalRule logicalRule,
         XmlNamespaceManager namespaceManager)
     {
-        if (logicalRule.Parents is null && logicalRule.Conditions is null)
+        var anyParents = logicalRule.Parents?.Any() ?? false;
+        var anyConditions = logicalRule.Conditions?.Any() ?? false;
+        if (!anyParents && !anyConditions)
         {
             throw new InvalidOperationException("Logical rule must have at least one parent or condition.");
         }
         
-        var parentResult = new List<bool>();
-        if (logicalRule.Parents?.Any() ?? false)
+        if (anyParents && anyConditions)
         {
-            foreach (var parent in logicalRule.Parents)
-            {
-                parentResult.Add(ValidateLogicalRule(xmlDoc, parent, namespaceManager));
-            }
-            
-            if (logicalRule.LogicOperator == LogicOperator.AND)
-            {
-                return parentResult.All(x => x);
-            }
-
-            if (logicalRule.LogicOperator == LogicOperator.OR)
-            {
-                return parentResult.Any(x => x);
-            }
-
-            throw new InvalidOperationException($"Unsupported operator: {logicalRule.LogicOperator}");
-        }
-
-        var conditionsResult = new List<bool>();
-        foreach (var condition in logicalRule.Conditions)
-        {
-            conditionsResult.Add(EvaluateCondition(xmlDoc, condition, namespaceManager));       
+            throw new InvalidOperationException("Logical rule can not have both parent and condition.");
         }
         
-        if (logicalRule.LogicOperator == LogicOperator.AND)
+        if (anyParents)
         {
-            return conditionsResult.All(x => x);
+            return ValidateParents(xmlDoc, logicalRule, namespaceManager);
         }
 
-        if (logicalRule.LogicOperator == LogicOperator.OR)
+        return ValidateConditions(xmlDoc, logicalRule, namespaceManager);
+    }
+
+    private bool ValidateConditions(XDocument xmlDoc, LogicalRule logicalRule, XmlNamespaceManager namespaceManager)
+    {
+        if (logicalRule.Conditions is null || !(logicalRule.Conditions?.Any() ?? false))
         {
-            return conditionsResult.Any(x => x);
+            throw new InvalidOperationException("Conditions can not be null.");
+        }
+        
+        var result = new List<bool>();
+        foreach (var condition in logicalRule.Conditions)
+        {
+            result.Add(EvaluateCondition(xmlDoc, condition, namespaceManager));       
+        }
+        
+        return logicalRule.LogicOperator switch
+        {
+            LogicOperator.AND => result.All(x => x),
+            LogicOperator.OR => result.Any(x => x),
+            _ => throw new InvalidOperationException($"Unsupported operator: {logicalRule.LogicOperator}")
+        };
+    }
+
+    private bool ValidateParents(XDocument xmlDoc, LogicalRule logicalRule, XmlNamespaceManager namespaceManager)
+    {
+        if (logicalRule.Parents is null || !(logicalRule.Parents?.Any() ?? false))
+        {
+            throw new InvalidOperationException("Parents can not be null.");
         }
 
-        throw new InvalidOperationException($"Unsupported operator: {logicalRule.LogicOperator}");
+        var result = new List<bool>();
+        foreach (var parent in logicalRule.Parents)
+        {
+            result.Add(ValidateLogicalRule(xmlDoc, parent, namespaceManager));
+        }
+            
+        return logicalRule.LogicOperator switch
+        {
+            LogicOperator.AND => result.All(x => x),
+            LogicOperator.OR => result.Any(x => x),
+            _ => throw new InvalidOperationException($"Unsupported operator: {logicalRule.LogicOperator}")
+        };
     }
 
     private bool EvaluateCondition(XDocument xmlDoc, ConditionRule condition, XmlNamespaceManager namespaceManager)
