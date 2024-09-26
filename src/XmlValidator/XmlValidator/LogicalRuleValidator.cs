@@ -82,7 +82,7 @@ public class LogicalRuleValidator
         {
             case ConditionOperator.HAS_ANY_VALUE:
                 return elements.Any(e => !string.IsNullOrEmpty(e.Value));
-            case ConditionOperator.EQUALS:
+            case ConditionOperator.EQUAL:
                 return elements.Any(e => e.Value == condition.Value);
             case ConditionOperator.IN:
                 var values = condition.Value.Split(',');

@@ -119,7 +119,7 @@ namespace XmlValidator.Tests
             {
                 ConditionId = 1,
                 ConfigField = meteringPointTypeConfigField,
-                ConditionOperator = ConditionOperator.EQUALS,
+                ConditionOperator = ConditionOperator.EQUAL,
                 Value = "590015710563817868"
             };
 
